@@ -1,6 +1,7 @@
 Param([Parameter(Mandatory=$false)][string]$gen)
 
 . .\src\windows\common\setup\init.ps1
+. .\src\windows\common\helpers\Update-DiskID.ps1
 
 Log-Info 'Running Script Enable-NestedHyperV'
 
@@ -116,6 +117,15 @@ if ($hyperv.Installed -and $hypervTools.Installed -and $hypervPowerShell.Install
 }
 else
 {
+    Log-Info "PREREQ: Checking for disk signature collision" | Out-File -FilePath $logFile -Append
+    $updatedDiskID = Update-DiskID
+
+    if ($updatedDiskID) {
+        Log-Info "PREREQ: Disk signature collision detected and resolved" | Out-File -FilePath $logFile -Append
+    }
+    else {
+        Log-Info "PREREQ: Disk signature collision not detected" | Out-File -FilePath $logFile -Append
+    }
     "START: Installing Hyper-V" | out-file -FilePath $logFile -Append
     try {
         # Install Hyper-V role. The required restart is handled in the calling script, not this script, to make sure that this script cleanly returns the Hyper-V role install status to the calling script.
